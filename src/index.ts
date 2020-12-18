@@ -1,7 +1,10 @@
+import { Product } from './models/product.model';
 "use strict";
 
 import puppeteer, { Browser, BrowserContext, Page, Response } from 'puppeteer';
-import { getRandom } from 'random-useragent';
+import chalk from 'chalk';
+import { getRandomUserAgent } from './utils/utils'
+import { Products } from './products'
 import { logger } from './utils/logger';
 
 
@@ -9,52 +12,99 @@ let browser: Browser
 let context: BrowserContext
 let page: Page
 
-// const defaultUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36"
 
 const args: string[] = [];
 args.push('--no-sandbox');
 args.push('--disable-setuid-sandbox');
+// args.push('--lang')
+
+if (args.length > 0) {
+  logger.info('ℹ puppeteer config: ', args);
+}
 
 const options: {} = {
   // headless: false,
-  // slowMo: 1000,
+  // slowMo: 700,
   // defaultViewport: {
-  //   width: 800,
-  //   height: 600,
+  //   width: 1920,
+  //   height: 1080,
   // },
   args,
 };
 
+logger.info('ℹ puppeteer options: ', options)
+
 async function main() {
-  const link = 'https://example.com'
   browser = await puppeteer.launch(options)
-  context = await browser.createIncognitoBrowserContext()
-  page = await context.newPage()
 
-  const defaultUserAgent = await browser.userAgent()
-  const userAgent: string =
-    getRandom((ua) => {
-      return ua.browserName === 'Chrome' && ua.browserVersion > '20';
-    }) ?? defaultUserAgent
+  try {
+    // This will async each lookUp call, thus when we use page.goto it will navigate the same incognito tab instead of doing it seperately
+    // const resolved = await Promise.all(products.map(async (product) => {
+    //   return await lookUp(product, browser)
+    // }))
+    // console.log("🚀 ~ file: index.ts ~ line 57 ~ main ~ results", resolved)
 
-  page.setUserAgent(userAgent)
-
-  const response: Response | null = await page.goto(link);
-
-  if (!response) {
-    logger.debug(`No response for ${link}`)
-  }
-
-  const dimensions = await page.evaluate(() => {
-    return {
-      width: document.documentElement.clientWidth,
-      height: document.documentElement.clientHeight,
-      deviceScaleFactor: window.devicePixelRatio
+    for (let product of Products) {
+      logger.info('ℹ Looking up product: ', product)
+      await lookUp(product, browser)
     }
-  })
-  console.log("🚀 ~ file: index.ts ~ line 22 ~ dimensions ~ dimensions", dimensions)
+  }
+  catch (err) {
+    logger.error('✖ something bad happened during lookUp', err)
+  }
 
   await browser.close();
 }
 
-main()
+// async function lookUp(product: Product, browser: Browser): Promise<String | null> {
+async function lookUp(product: Product, browser: Browser) {
+  context = await browser.createIncognitoBrowserContext()
+  page = await context.newPage();
+  await page.setJavaScriptEnabled(false);
+
+  const userAgent = await getRandomUserAgent()
+  logger.debug(`ℹ page userAgent: ${userAgent}`)
+
+  page.setUserAgent(userAgent)
+
+  const response: Response | null = await page.goto(product.itemUrl, { waitUntil: 'networkidle0' });
+
+  if (!response) {
+    logger.debug(`✖ No response for ${product.itemNumber} - ${product.itemUrl}`)
+  }
+
+  let elementText = await page.evaluate(() => {
+    // Type assertion to HTMLElement
+    // return (document.querySelector(".product-buy") as HTMLElement)?.innerText
+    const element = <HTMLElement>document.querySelector(".product-buy")
+    return element.innerText
+  })
+
+  // If product in stock ➤ open browser and attempt add to cart
+  if (isProductInStock(elementText, product.label.targetText)) {
+    logger.info(`✔ ${product.itemName} is in stock 🚨‼️`)
+  } else {
+    logger.info(`✖ ${product.itemName} is not stock 🤏`)
+  }
+
+  page.close()
+}
+
+function isProductInStock(text: string, targetText: string) {
+  const textLowerCase = text.toLowerCase().trim()
+  logger.info(`Comparing ${chalk.yellow(`"${textLowerCase}" ⇄  "${targetText}"`)} ➤ ${textLowerCase.includes(targetText)}`)
+  return textLowerCase.includes(targetText)
+}
+
+
+
+async function loopMain() {
+  try {
+    await main()
+  }
+  catch (err) {
+    logger.error('✖ something bad happened, resetting instant stock in 5 seconds', err)
+  }
+}
+
+void loopMain()
