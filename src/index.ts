@@ -1,10 +1,11 @@
-import { Product } from './models/product.model';
 "use strict";
 
 import puppeteer, { Browser, BrowserContext, Page, Response } from 'puppeteer';
 import chalk from 'chalk';
 import { getRandomUserAgent } from './utils/utils'
+import { playNotificaitonSound } from './notifications/sound'
 import { Products } from './products'
+import { Product } from './models/product.model';
 import { logger } from './utils/logger';
 
 
@@ -22,7 +23,7 @@ if (args.length > 0) {
   logger.info('ℹ puppeteer config: ', args);
 }
 
-const options: {} = {
+const options = {
   // headless: false,
   // slowMo: 700,
   // defaultViewport: {
@@ -44,7 +45,7 @@ async function main() {
     // }))
     // console.log("🚀 ~ file: index.ts ~ line 57 ~ main ~ results", resolved)
 
-    for (let product of Products) {
+    for (const product of Products) {
       logger.info('ℹ Looking up product: ', product)
       await lookUp(product, browser)
     }
@@ -73,16 +74,17 @@ async function lookUp(product: Product, browser: Browser) {
     logger.debug(`✖ No response for ${product.itemNumber} - ${product.itemUrl}`)
   }
 
-  let elementText = await page.evaluate(() => {
+  const elementText = await page.evaluate(() => {
     // Type assertion to HTMLElement
     // return (document.querySelector(".product-buy") as HTMLElement)?.innerText
     const element = <HTMLElement>document.querySelector(".product-buy")
     return element.innerText
   })
 
-  // If product in stock ➤ open browser and attempt add to cart
+  // If product in stock ➤ notificaiton and open browser and attempt add to cart
   if (isProductInStock(elementText, product.label.targetText)) {
-    logger.info(`✔ ${product.itemName} is in stock 🚨‼️`)
+    logger.info(`✔ ${product.itemName} is in stock 🚨🚨🚨`)
+    playNotificaitonSound()
   } else {
     logger.info(`✖ ${product.itemName} is not stock 🤏`)
   }
@@ -92,7 +94,7 @@ async function lookUp(product: Product, browser: Browser) {
 
 function isProductInStock(text: string, targetText: string) {
   const textLowerCase = text.toLowerCase().trim()
-  logger.info(`Comparing ${chalk.yellow(`"${textLowerCase}" ⇄  "${targetText}"`)} ➤ ${textLowerCase.includes(targetText)}`)
+  logger.info(`Comparing ${chalk.yellow(`"${textLowerCase}" ⇄  "${targetText}"`)} ➤  ${textLowerCase.includes(targetText)}`)
   return textLowerCase.includes(targetText)
 }
 
