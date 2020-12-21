@@ -1,16 +1,16 @@
-import { getRandom } from 'random-useragent';
+import { getRandom } from "random-useragent";
 
 
 export function getRandomUserAgent(): string {
   // const defaultUserAgent = await browser.userAgent()
-  const defaultUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36"
+  const defaultUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36";
   const userAgent: string =
     getRandom((ua) => {
-      return ua.osName !== 'Android'
-        && ua.osName !== 'iOS'
-        && ua.browserName === 'Chrome'
-        && ua.browserVersion > '20';
-    }) ?? defaultUserAgent
+      return ua.osName !== "Android"
+        && ua.osName !== "iOS"
+        && ua.browserName === "Chrome"
+        && ua.browserVersion > "20";
+    }) ?? defaultUserAgent;
 
-  return userAgent
+  return userAgent;
 }

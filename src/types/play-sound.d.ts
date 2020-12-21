@@ -1,4 +1,4 @@
-declare module 'play-sound' {
+declare module "play-sound" {
   export interface Options {
     players?: string[];
     player?: string;

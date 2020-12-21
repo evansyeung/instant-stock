@@ -1,10 +1,10 @@
-import winston from 'winston';
-import chalk from 'chalk';
+import winston from "winston";
+import chalk from "chalk";
 
 const logFormat = winston.format.printf((info) => {
   const timestamp = new Date().toLocaleTimeString();
 
-  let out = `${chalk.blue(`[${timestamp}]`)} ${info.level} ${chalk.blue('::')} ${info.message}`;
+  let out = `${chalk.blue(`[${timestamp}]`)} ${info.level} ${chalk.blue("::")} ${info.message}`;
 
   if (Object.keys(info.metadata).length > 0) {
     out = `${out} ${chalk.magenta(JSON.stringify(info.metadata, null, 2))}`;
@@ -18,7 +18,7 @@ export const logger = winston.createLogger({
     winston.format.colorize(),
     winston.format.timestamp(),
     winston.format.metadata({
-      fillExcept: ['level', 'message', 'timestamp']
+      fillExcept: ["level", "message", "timestamp"]
     }),
     logFormat
   ),
