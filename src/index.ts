@@ -3,7 +3,7 @@
 import puppeteer, { Browser, BrowserContext, Page, Response } from 'puppeteer';
 import chalk from 'chalk';
 import { getRandomUserAgent } from './utils/utils'
-import { playNotificaitonSound } from './notifications/sound'
+import { sendNotification } from './notifications/notification'
 import { Products } from './products'
 import { Product } from './models/product.model';
 import { logger } from './utils/logger';
@@ -20,7 +20,7 @@ args.push('--disable-setuid-sandbox');
 // args.push('--lang')
 
 if (args.length > 0) {
-  logger.info('ℹ puppeteer config: ', args);
+  logger.debug('ℹ puppeteer config: ', args);
 }
 
 const options = {
@@ -39,7 +39,7 @@ async function main() {
   browser = await puppeteer.launch(options)
 
   try {
-    // This will async each lookUp call, thus when we use page.goto it will navigate the same incognito tab instead of doing it seperately
+    // This will async each lookUp call, thus when we use page.goto it will navigate the same incognito tab instead of doing it separately
     // const resolved = await Promise.all(products.map(async (product) => {
     //   return await lookUp(product, browser)
     // }))
@@ -83,10 +83,10 @@ async function lookUp(product: Product, browser: Browser) {
 
   // If product in stock ➤ notificaiton and open browser and attempt add to cart
   if (isProductInStock(elementText, product.label.targetText)) {
-    logger.info(`✔ ${product.itemName} is in stock 🚨🚨🚨`)
-    playNotificaitonSound()
+    logger.info(`✔ ${product.itemName} is ${chalk.bgGreen('in stock')} 🚨🚨🚨`)
+    await sendNotification(product)
   } else {
-    logger.info(`✖ ${product.itemName} is not stock 🤏`)
+    logger.info(`✖ ${product.itemName} is ${chalk.bgRedBright('not in stock')} 🤏`)
   }
 
   page.close()
@@ -97,8 +97,6 @@ function isProductInStock(text: string, targetText: string) {
   logger.info(`Comparing ${chalk.yellow(`"${textLowerCase}" ⇄  "${targetText}"`)} ➤  ${textLowerCase.includes(targetText)}`)
   return textLowerCase.includes(targetText)
 }
-
-
 
 async function loopMain() {
   try {

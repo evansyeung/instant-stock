@@ -5,7 +5,7 @@ import { logger } from '../utils/logger'
 const player: PlaySound = playerLib();
 
 // TODO: use a config file instead
-export function playNotificaitonSound(): void {
+export function playNotificationSound(): void {
   logger.debug('↗ playing sound');
 
   // filesystem to check user permissions to access file
