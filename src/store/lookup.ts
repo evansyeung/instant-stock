@@ -5,18 +5,22 @@ import { getRandomUserAgent, openBrowser } from "../utils/utils";
 import { sendNotification } from "../notifications/notification";
 import { Product } from "../models/product.model";
 import { logger } from "../utils/logger";
+import { getSleepTime } from "../utils/utils"
 import { config } from "../config";
 
 
-let context: BrowserContext;
-let page: Page;
+function isProductInStock(text: string, targetText: string): boolean {
+  const textLowerCase = text.toLowerCase().trim();
+  const result = textLowerCase.includes(targetText);
+  logger.debug(`Comparing ${chalk.yellow(`"${textLowerCase}" ⇄  "${targetText}"`)} ➤  ${chalk.yellow(result.toString())}`);
+  return result;
+}
 
-// async function lookUp(product: Product, browser: Browser): Promise<String | null> {
 async function productLookUp(product: Product, browser: Browser) {
   const { isIncognito } = config.puppeteer;
 
-  context = isIncognito ? await browser.createIncognitoBrowserContext() : await browser.defaultBrowserContext();
-  page = await context.newPage();
+  const context: BrowserContext = isIncognito ? await browser.createIncognitoBrowserContext() : await browser.defaultBrowserContext();
+  const page: Page = await context.newPage();
   // await page.setRequestInterception(true);
   await page.setJavaScriptEnabled(false);
 
@@ -40,7 +44,7 @@ async function productLookUp(product: Product, browser: Browser) {
     return element.innerText;
   });
 
-  // If product in stock ➤ notification and open browser and attempt add to cart
+  // If product in stock ➤ open browser with ATC link + notification settings
   if (isProductInStock(elementText, product.label.targetText)) {
     logger.info(`✔ ${product.itemName} is ${chalk.bgGreen("in stock")} 🚨🚨🚨`);
     await openBrowser(product.itemUrl, product.cartUrl);
@@ -52,23 +56,18 @@ async function productLookUp(product: Product, browser: Browser) {
   page.close();
 }
 
-function isProductInStock(text: string, targetText: string): boolean {
-  const textLowerCase = text.toLowerCase().trim();
-  const result = textLowerCase.includes(targetText);
-  logger.debug(`Comparing ${chalk.yellow(`"${textLowerCase}" ⇄  "${targetText}"`)} ➤  ${chalk.yellow(result.toString())}`);
-  return result;
-}
-
 export async function productLookUpLoop(product: Product, browser: Browser): Promise<void> {
+  logger.info("ℹ Looking up product: ", product);
+
   try {
     await productLookUp(product, browser);
   }
   catch (err) {
-    logger.info("ℹ Looking up product: ", product);
+    logger.error(`✖ something went wrong with productLookUp()`, err)
     return;
   }
 
-  // const sleepTime = 5000;
-  // logger.info('ℹ Lookup done, next one in 5000 ms');
-  // setTimeout(productLookUpLoop, sleepTime, product, browser);
+  const sleepTime = getSleepTime(5000, 15000);
+  logger.info(`ℹ Lookup done, next lookup in ${sleepTime} ms`);
+  setTimeout(productLookUpLoop, sleepTime, product, browser);
 }

@@ -18,6 +18,10 @@ export function getRandomUserAgent(): string {
   return userAgent;
 }
 
+export function getSleepTime(minSleep: number, maxSleep: number): number {
+  return Math.random() * (maxSleep - minSleep) + minSleep;
+}
+
 export async function openBrowser(itemUrl: string, cartUrl?: string): Promise<void> {
   const {
     shouldOpenBrowser,

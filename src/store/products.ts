@@ -1,7 +1,7 @@
-import { Product } from "./models/product.model";
+import { Product } from "../models/product.model";
 
 
-export const Products: Product[] = [
+export const products: Product[] = [
   {
     itemName: "ASUS TUF Gaming NVIDIA GeForce RTX 3080 TUF-RTX3080-10G-GAMING Video Card",
     itemNumber: "14-126-453",
