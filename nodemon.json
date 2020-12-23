@@ -1,6 +1,7 @@
 {
   "watch": [
-    "src"
+    "src",
+    "local_secrets.env"
   ],
   "ext": ".ts,.js",
   "ignore": [],

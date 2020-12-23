@@ -1,3 +1,9 @@
+local_secrets.env:
+	cp local_secrets.env.template local_secrets.env
+
+init: local_secrets.env
+	git config core.hooksPath .githooks
+
 build:
 	docker build --tag instant-stock-backend .
 

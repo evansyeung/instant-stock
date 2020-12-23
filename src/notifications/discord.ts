@@ -1,27 +1,26 @@
+"use strict";
+
 import { Product } from "./../models/product.model";
 import { WebhookClient, MessageEmbed } from "discord.js";
 import { logger } from "../utils/logger";
+import { config } from "../config";
 
-
-// TODO: Convert to env var configs
-const webHookId = "";
-const webHookToken = "";
 
 let client: WebhookClient;
 
 function createEmbeddedMessage(productInfo: Product): MessageEmbed {
   const embeddedMessage = new MessageEmbed()
-    .setTitle("🚨 🚨 🚨  Stock Notification 🚨 🚨 🚨")
+    .setTitle("🚨  Stock Notification  🚨")
     .setDescription(productInfo.itemName)
     .setColor("#0099ff")
     .addFields([
       {
-        name: "Product URL",
+        name: "Product Link",
         value: productInfo.itemUrl,
         inline: true
       },
       {
-        name: "Product Add to Cart URL",
+        name: "ATC",
         value: productInfo.cartUrl,
         inline: true
       }
@@ -32,10 +31,14 @@ function createEmbeddedMessage(productInfo: Product): MessageEmbed {
 }
 
 export function sendDiscordMessage(productInfo: Product): void {
+  const { shouldSendDiscordNotification, discordWebhookId, discordWebhookToken } = config.notification.discord;
+
+  if (!shouldSendDiscordNotification) return;
+
   logger.debug("↗ sending discord message");
 
   try {
-    client = new WebhookClient(webHookId, webHookToken);
+    client = new WebhookClient(discordWebhookId, discordWebhookToken);
 
     if (!client.id) {
       throw new Error("Discord WebhookClient connection not initiated - client missing ID");

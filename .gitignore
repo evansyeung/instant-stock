@@ -1,5 +1,7 @@
 .DS_STORE
 
+local_secrets.env
+
 # Logs
 logs
 *.log

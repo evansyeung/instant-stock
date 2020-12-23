@@ -7,12 +7,12 @@ import { sendNotification } from "./notifications/notification";
 import { Products } from "./products";
 import { Product } from "./models/product.model";
 import { logger } from "./utils/logger";
+import { config } from "./config";
 
 
 let browser: Browser;
 let context: BrowserContext;
 let page: Page;
-
 
 const args: string[] = [];
 args.push("--no-sandbox");
@@ -24,12 +24,14 @@ if (args.length > 0) {
 }
 
 const options = {
-  // headless: false,
-  // slowMo: 700,
-  // defaultViewport: {
-  //   width: 1920,
-  //   height: 1080,
-  // },
+  headless: config.puppeteer.isHeadless,
+  ...(config.puppeteer.slowMo && { slowMo: config.puppeteer.slowMo }),
+  ...(config.puppeteer.isDifferentViewPort && {
+    defaultViewport: {
+      width: config.puppeteer.viewPortWidth,
+      height: config.puppeteer.viewPortHeight,
+    },
+  }),
   args,
 };
 
@@ -83,7 +85,7 @@ async function lookUp(product: Product, browser: Browser) {
     return element.innerText;
   });
 
-  // If product in stock ➤ notificaiton and open browser and attempt add to cart
+  // If product in stock ➤ notification and open browser and attempt add to cart
   if (isProductInStock(elementText, product.label.targetText)) {
     logger.info(`✔ ${product.itemName} is ${chalk.bgGreen("in stock")} 🚨🚨🚨`);
     await sendNotification(product);
@@ -94,10 +96,11 @@ async function lookUp(product: Product, browser: Browser) {
   page.close();
 }
 
-function isProductInStock(text: string, targetText: string) {
+function isProductInStock(text: string, targetText: string): boolean {
   const textLowerCase = text.toLowerCase().trim();
-  logger.info(`Comparing ${chalk.yellow(`"${textLowerCase}" ⇄  "${targetText}"`)} ➤  ${textLowerCase.includes(targetText)}`);
-  return textLowerCase.includes(targetText);
+  const result = textLowerCase.includes(targetText);
+  logger.info(`Comparing ${chalk.yellow(`"${textLowerCase}" ⇄  "${targetText}"`)} ➤  ${chalk.yellow(result.toString())}`);
+  return result;
 }
 
 async function loopMain() {
