@@ -1,4 +1,7 @@
+import open from "open";
 import { getRandom } from "random-useragent";
+import { logger } from "./logger";
+import { config } from "../config";
 
 
 export function getRandomUserAgent(): string {
@@ -13,4 +16,27 @@ export function getRandomUserAgent(): string {
     }) ?? defaultUserAgent;
 
   return userAgent;
+}
+
+export async function openBrowser(itemUrl: string, cartUrl?: string): Promise<void> {
+  const {
+    shouldOpenBrowser,
+    browserApp
+  } = config.webBrowser;
+
+  if (!shouldOpenBrowser) {
+    return;
+  }
+
+  try {
+    const url = cartUrl || itemUrl;
+
+    logger.debug(`↗ opening browser with ${url}`);
+    await open(url, { app: browserApp });
+  }
+  catch (err) {
+    logger.error(`  ✖ couldn't open ${browserApp}`, err);
+  }
+
+  logger.info(`  ✔ opened ${browserApp} browser`);
 }

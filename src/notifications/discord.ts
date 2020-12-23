@@ -33,7 +33,9 @@ function createEmbeddedMessage(productInfo: Product): MessageEmbed {
 export function sendDiscordMessage(productInfo: Product): void {
   const { shouldSendDiscordNotification, discordWebhookId, discordWebhookToken } = config.notification.discord;
 
-  if (!shouldSendDiscordNotification) return;
+  if (!shouldSendDiscordNotification) {
+    return;
+  }
 
   logger.debug("↗ sending discord message");
 
@@ -51,11 +53,11 @@ export function sendDiscordMessage(productInfo: Product): void {
         embeds: [embeddedMessage]
       }
     );
-    logger.info("✔ discord message sent");
+    logger.info("  ✔ discord message sent");
 
   }
   catch (err) {
-    logger.error("✖ couldn't send discord message", err);
+    logger.error("  ✖ couldn't send discord message", err);
   }
 
   // Attempt to destroy, only if webhook connection exists

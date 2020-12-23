@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import path from "path";
 import {
   Puppeteer,
+  WebBrowser,
   Sound,
   Discord
 } from "./models/config.model";
@@ -36,7 +37,13 @@ const puppeteer: Puppeteer = {
   }),
   ...(process.env.PUPPETEER_VIEWPORT_HEIGHT && {
     viewPortHeight: envOrNumber(process.env.PUPPETEER_VIEWPORT_HEIGHT)
-  })
+  }),
+  isIncognito: envOrBoolean(process.env.PUPPETEER_IS_INCOGNITO)
+};
+
+const webBrowser: WebBrowser = {
+  shouldOpenBrowser: envOrBoolean(process.env.BROWSER_OPEN),
+  browserApp: envOrString(process.env.BROWSER_APP)
 };
 
 const sound: Sound = {
@@ -52,6 +59,7 @@ const discord: Discord = {
 
 export const config = {
   puppeteer,
+  webBrowser,
   notification: {
     sound,
     discord,

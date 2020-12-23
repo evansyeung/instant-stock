@@ -11,7 +11,9 @@ const player: PlaySound = playerLib();
 export function playNotificationSound(): void {
   const { shouldPlayNotificationSound, soundFilePath } = config.notification.sound;
 
-  if (!shouldPlayNotificationSound) return;
+  if (!shouldPlayNotificationSound) {
+    return;
+  }
 
   logger.debug("↗ playing sound");
 
@@ -21,15 +23,15 @@ export function playNotificationSound(): void {
     fs.constants.F_OK,  // default
     (err) => {
       if (err) {
-        logger.error("✖ error opening sound file: ${error.message}");
+        logger.error(`✖ error opening sound file: ${err.message}`);
       }
 
-      player.play(soundFilePath, (error: Error) => {
-        if (error) {
-          logger.error("✖ couldn't play sound", error);
+      player.play(soundFilePath, (err: Error) => {
+        if (err) {
+          logger.error("  ✖ couldn't play sound", err);
         }
 
-        logger.info("✔ played notification sound");
+        logger.info("  ✔ played notification sound");
       });
     }
   );

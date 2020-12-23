@@ -1,18 +1,12 @@
 "use strict";
-
-import puppeteer, { Browser, BrowserContext, Page, Response } from "puppeteer";
-import chalk from "chalk";
-import { getRandomUserAgent } from "./utils/utils";
-import { sendNotification } from "./notifications/notification";
+import puppeteer, { Browser } from "puppeteer";
 import { Products } from "./products";
-import { Product } from "./models/product.model";
+import { productLookUpLoop } from "./store/lookup";
 import { logger } from "./utils/logger";
 import { config } from "./config";
 
 
 let browser: Browser;
-let context: BrowserContext;
-let page: Page;
 
 const args: string[] = [];
 args.push("--no-sandbox");
@@ -48,59 +42,12 @@ async function main() {
     // console.log("🚀 ~ file: index.ts ~ line 57 ~ main ~ results", resolved)
 
     for (const product of Products) {
-      logger.info("ℹ Looking up product: ", product);
-      await lookUp(product, browser);
+      await productLookUpLoop(product, browser);
     }
   }
   catch (err) {
     logger.error("✖ something bad happened during lookUp", err);
   }
-
-  await browser.close();
-}
-
-// async function lookUp(product: Product, browser: Browser): Promise<String | null> {
-async function lookUp(product: Product, browser: Browser) {
-  context = await browser.createIncognitoBrowserContext();
-  page = await context.newPage();
-  await page.setJavaScriptEnabled(false);
-
-  const userAgent = await getRandomUserAgent();
-  logger.debug(`ℹ page userAgent: ${userAgent}`);
-
-  page.setUserAgent(userAgent);
-
-  const response: Response | null = await page.goto(product.itemUrl, {
-    waitUntil: "networkidle0"
-  });
-
-  if (!response) {
-    logger.debug(`✖ No response for ${product.itemNumber} - ${product.itemUrl}`);
-  }
-
-  const elementText = await page.evaluate(() => {
-    // Type assertion to HTMLElement
-    // return (document.querySelector(".product-buy") as HTMLElement)?.innerText
-    const element = <HTMLElement>document.querySelector(".product-buy");
-    return element.innerText;
-  });
-
-  // If product in stock ➤ notification and open browser and attempt add to cart
-  if (isProductInStock(elementText, product.label.targetText)) {
-    logger.info(`✔ ${product.itemName} is ${chalk.bgGreen("in stock")} 🚨🚨🚨`);
-    await sendNotification(product);
-  } else {
-    logger.info(`✖ ${product.itemName} is ${chalk.bgRedBright("not in stock")} 🤏`);
-  }
-
-  page.close();
-}
-
-function isProductInStock(text: string, targetText: string): boolean {
-  const textLowerCase = text.toLowerCase().trim();
-  const result = textLowerCase.includes(targetText);
-  logger.info(`Comparing ${chalk.yellow(`"${textLowerCase}" ⇄  "${targetText}"`)} ➤  ${chalk.yellow(result.toString())}`);
-  return result;
 }
 
 async function loopMain() {
@@ -109,7 +56,9 @@ async function loopMain() {
   }
   catch (err) {
     logger.error("✖ something bad happened, resetting instant stock in 5 seconds", err);
+    setTimeout(loopMain, 5000);
   }
+  // await browser.close();
 }
 
 void loopMain();

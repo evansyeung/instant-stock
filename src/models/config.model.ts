@@ -4,6 +4,12 @@ export interface Puppeteer {
   isDifferentViewPort?: boolean,
   viewPortWidth?: number,
   viewPortHeight?: number,
+  isIncognito: boolean,
+}
+
+export interface WebBrowser {
+  shouldOpenBrowser: boolean,
+  browserApp: string,
 }
 
 export interface Sound {
