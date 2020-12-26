@@ -1,11 +1,11 @@
 "use strict";
 import { Browser, BrowserContext, Page, Response } from "puppeteer";
 import chalk from "chalk";
-import { getRandomUserAgent, openBrowser } from "../utils/utils";
 import { sendNotification } from "../notifications/notification";
+import { Store, Selector } from "../models/store.model";
 import { Product } from "../models/product.model";
+import { getRandomUserAgent, openBrowser, getSleepTime } from "../utils/utils";
 import { logger } from "../utils/logger";
-import { getSleepTime } from "../utils/utils"
 import { config } from "../config";
 
 
@@ -16,7 +16,24 @@ function isProductInStock(text: string, targetText: string): boolean {
   return result;
 }
 
-async function productLookUp(product: Product, browser: Browser) {
+async function extractPageContents(page: Page, options: Selector): Promise<string | null> {
+  return page.evaluate((options: Selector) => {
+    const element = <HTMLElement>document.querySelector(options.selector);
+
+    if (!element) {
+      return null;
+    }
+
+    switch (options.type) {
+      case "innerHTML":
+        return element.innerHTML;
+      default:
+        return "Error: selector.type is unknown";
+    }
+  }, options);
+}
+
+async function productLookUp(store: Store, product: Product, browser: Browser) {
   const { isIncognito } = config.puppeteer;
 
   const context: BrowserContext = isIncognito ? await browser.createIncognitoBrowserContext() : await browser.defaultBrowserContext();
@@ -25,49 +42,55 @@ async function productLookUp(product: Product, browser: Browser) {
   await page.setJavaScriptEnabled(false);
 
   const userAgent = await getRandomUserAgent();
-  logger.debug(`ℹ page userAgent: ${userAgent}`);
-
+  logger.debug(`ℹ setting page userAgent: ${userAgent}`);
   page.setUserAgent(userAgent);
 
-  const response: Response | null = await page.goto(product.itemUrl, {
+  const response: Response | null = await page.goto(product.url, {
     waitUntil: "networkidle0"
   });
 
   if (!response) {
-    logger.debug(`✖ No response for ${product.itemNumber} - ${product.itemUrl}`);
+    throw Error(`✖ No response for ${store.name} - ${product.name} - ${product.url}`);
   }
 
-  const elementText = await page.evaluate(() => {
-    // Type assertion to HTMLElement
-    // return (document.querySelector(".product-buy") as HTMLElement)?.innerText
-    const element = <HTMLElement>document.querySelector(".product-buy");
-    return element.innerText;
-  });
+  const { inStockLabel } = store.queryLabel;
+  const { targetText } = inStockLabel;
+  const contents = await extractPageContents(page, inStockLabel);
+
+  if (!contents) {
+    throw Error(`✖ extractPageContents() return null value for ${store.name} - ${product.name}`);
+  }
 
   // If product in stock ➤ open browser with ATC link + notification settings
-  if (isProductInStock(elementText, product.label.targetText)) {
-    logger.info(`✔ ${product.itemName} is ${chalk.bgGreen("in stock")} 🚨🚨🚨`);
-    await openBrowser(product.itemUrl, product.cartUrl);
-    await sendNotification(product);
+  if (isProductInStock(contents, targetText)) {
+    logger.info(`✔ ${store.name}: ${product.name} is ${chalk.bgGreen("in stock")} 🚨🚨🚨`);
+    await openBrowser(product.url, product.atcUrl);
+    await sendNotification(store, product);
   } else {
-    logger.info(`✖ ${product.itemName} is ${chalk.bgRedBright("not in stock")} 🤏`);
+    logger.info(`✖ ${store.name}: ${product.name} is ${chalk.bgRedBright("not in stock")} 🤏`);
   }
+
+  // Clear page cookie history and cache
+  const client = await page.target().createCDPSession();
+  await client.send("Network.clearBrowserCookies");
+  await client.send("Network.clearBrowserCache");
 
   page.close();
 }
 
-export async function productLookUpLoop(product: Product, browser: Browser): Promise<void> {
-  logger.info("ℹ Looking up product: ", product);
+export async function productLookUpLoop(store: Store, product: Product, browser: Browser): Promise<void> {
+  const { minSleep, maxSleep } = config.sleep;
+  logger.info(`ℹ Looking up ${store.name} product: `, product);
 
   try {
-    await productLookUp(product, browser);
+    await productLookUp(store, product, browser);
   }
   catch (err) {
-    logger.error(`✖ something went wrong with productLookUp()`, err)
+    logger.error("✖ something went wrong with productLookUp()", err);
     return;
   }
 
-  const sleepTime = getSleepTime(5000, 15000);
-  logger.info(`ℹ Lookup done, next lookup in ${sleepTime} ms`);
-  setTimeout(productLookUpLoop, sleepTime, product, browser);
+  const sleepTime = getSleepTime(minSleep, maxSleep);
+  logger.debug(`ℹ Lookup done, next lookup in ${sleepTime} ms`);
+  setTimeout(productLookUpLoop, sleepTime, store, product, browser);
 }

@@ -1,12 +1,7 @@
-export interface Product {
-  itemName: string,
-  itemNumber: string,
-  itemUrl: string,
-  cartUrl: string,
-  label: Label
-}
-
-interface Label {
-  query: string,
-  targetText: string
+export type Product = {
+  atcUrl: string,   // Add to cart URL
+  brand: string,
+  id: string,
+  name: string,
+  url: string,
 }

@@ -1,5 +1,5 @@
 "use strict";
-
+import { Store } from "./../models/store.model";
 import { Product } from "./../models/product.model";
 import { WebhookClient, MessageEmbed } from "discord.js";
 import { logger } from "../utils/logger";
@@ -8,20 +8,20 @@ import { config } from "../config";
 
 let client: WebhookClient;
 
-function createEmbeddedMessage(productInfo: Product): MessageEmbed {
+function createEmbeddedMessage(storeInfo: Store, productInfo: Product): MessageEmbed {
   const embeddedMessage = new MessageEmbed()
     .setTitle("🚨  Stock Notification  🚨")
-    .setDescription(productInfo.itemName)
-    .setColor("#0099ff")
+    .setDescription(`**${storeInfo.name}**\n${productInfo.name}`)
+    .setColor("#7fffd4")
     .addFields([
       {
-        name: "Product Link",
-        value: productInfo.itemUrl,
+        name: "PRODUCT LINK",
+        value: productInfo.url,
         inline: true
       },
       {
-        name: "ATC",
-        value: productInfo.cartUrl,
+        name: "ATC LINK",
+        value: productInfo.atcUrl,
         inline: true
       }
     ])
@@ -30,7 +30,7 @@ function createEmbeddedMessage(productInfo: Product): MessageEmbed {
   return embeddedMessage;
 }
 
-export function sendDiscordMessage(productInfo: Product): void {
+export function sendDiscordMessage(storeInfo: Store, productInfo: Product): void {
   const { shouldSendDiscordNotification, discordWebhookId, discordWebhookToken } = config.notification.discord;
 
   if (!shouldSendDiscordNotification) {
@@ -46,9 +46,9 @@ export function sendDiscordMessage(productInfo: Product): void {
       throw new Error("Discord WebhookClient connection not initiated - client missing ID");
     }
 
-    const embeddedMessage = createEmbeddedMessage(productInfo);
+    const embeddedMessage = createEmbeddedMessage(storeInfo, productInfo);
     client.send(
-      `@here ${productInfo.itemName} is in stock ‼️`,
+      `@here **${storeInfo.name}**: ${productInfo.name} is in stock ‼️`,
       {
         embeds: [embeddedMessage]
       }

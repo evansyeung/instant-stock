@@ -1,13 +1,13 @@
 "use strict";
 import puppeteer, { Browser } from "puppeteer";
-import { products } from "./store/products";
+import { Stores } from "./store";
 import { productLookUpLoop } from "./store/lookup";
 import { logger } from "./utils/logger";
 import { config } from "./config";
 
 
 let browser: Browser;
-const sleepTime = 5000
+const sleepTime = 5000;
 
 const args: string[] = [];
 args.push("--no-sandbox");
@@ -34,11 +34,14 @@ logger.info("ℹ puppeteer options: ", options);
 
 async function main() {
   browser = await puppeteer.launch(options);
+  config.puppeteer.defaultUserAgent = await browser.userAgent();
 
   try {
-    await Promise.all(products.map(async (product) => {
-      return await productLookUpLoop(product, browser)
-    }))
+    Object.values(Stores).forEach(async store => {
+      await Promise.all(store.products.map(async product => {
+        return await productLookUpLoop(store, product, browser);
+      }));
+    });
   }
   catch (err) {
     logger.error("✖ something bad happened during productLookUpLoop()", err);
