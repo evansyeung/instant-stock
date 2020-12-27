@@ -74,19 +74,17 @@ async function productLookUp(store: Store, product: Product, browser: Browser): 
   const { inStockLabel, currentPriceLabel } = store.queryLabel;
   const contents = await extractPageContents(page, inStockLabel);
 
-  if (!contents) {
-    throw Error(`✖ extractPageContents() return null value for ${store.name} - ${product.name}`);
-  }
+  if (contents) {
+    // If product in stock ➤ open browser with ATC link + notification settings
+    if (isProductInStock(contents, inStockLabel.targetText)) {
+      logger.info(`✔ ${store.name}: ${product.name} is ${chalk.bgGreen("in stock")} 🚨🚨🚨`);
+      await openBrowser(product.url, product.atcUrl);
 
-  // If product in stock ➤ open browser with ATC link + notification settings
-  if (isProductInStock(contents, inStockLabel.targetText)) {
-    logger.info(`✔ ${store.name}: ${product.name} is ${chalk.bgGreen("in stock")} 🚨🚨🚨`);
-    await openBrowser(product.url, product.atcUrl);
-
-    product.currentPrice = await getCurrentPrice(page, currentPriceLabel);
-    await sendNotification(store, product);
-  } else {
-    logger.info(`✖ ${store.name}: ${product.name} is ${chalk.bgRedBright("not in stock")} 🤏`);
+      product.currentPrice = await getCurrentPrice(page, currentPriceLabel);
+      await sendNotification(store, product);
+    } else {
+      logger.info(`✖ ${store.name}: ${product.name} is ${chalk.bgRedBright("not in stock")} 🤏`);
+    }
   }
 
   // Clear page cookie history and cache
@@ -110,6 +108,6 @@ export async function productLookUpLoop(store: Store, product: Product, browser:
   }
 
   const sleepTime = getSleepTime(minSleep, maxSleep);
-  logger.debug(`ℹ Lookup done for ${store.name}: ${product.name}, next lookup in ${sleepTime} ms`);
+  logger.info(`ℹ Lookup done for ${store.name}: ${product.name}, next lookup in ${sleepTime} ms`);
   setTimeout(productLookUpLoop, sleepTime, store, product, browser);
 }

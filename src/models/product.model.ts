@@ -5,6 +5,6 @@ export type Product = {
   id: string,
   name: string,
   series: string,
-  type: "graphics-card",
+  type: "test-type" | "graphics-card",
   url: string,
 }

@@ -1,7 +1,7 @@
 "use strict";
 import { Store } from "./../models/store.model";
 import { Product } from "./../models/product.model";
-import { productTypeGraphicsCard } from "./../utils/constants";
+import { productTypeTest, productTypeGraphicsCard } from "./../utils/constants";
 import { WebhookClient, MessageEmbed } from "discord.js";
 import { logger } from "../utils/logger";
 import { config } from "../config";
@@ -14,6 +14,8 @@ function getDiscordRoleId(productInfo: Product) {
 
   let roleId;
   switch (productInfo.type) {
+    case productTypeTest:
+      return ''
     case productTypeGraphicsCard:
       roleId = config.notification.discord[`discordNvidia${series}RoleId`];
   }
