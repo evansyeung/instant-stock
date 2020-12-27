@@ -1,3 +1,4 @@
+import { productTypeGraphicsCard } from "./../utils/constants";
 import { Store } from "../models/store.model";
 
 
@@ -9,6 +10,8 @@ export const Newegg: Store = {
       brand: "asus",
       id: "14-126-453",
       name: "ASUS TUF Gaming NVIDIA GeForce RTX 3080 TUF-RTX3080-10G-GAMING Video Card",
+      series: "3080",
+      type: productTypeGraphicsCard,
       url: "https://www.newegg.com/asus-geforce-rtx-3080-tuf-rtx3080-10g-gaming/p/N82E16814126453",
     },
     {
@@ -16,6 +19,8 @@ export const Newegg: Store = {
       brand: "westernDigital",
       id: "14-126-453",
       name: "WD Red Pro WD6003FFBX 6TB 7200 RPM 256MB Cache SATA 6.0Gb/s 3.5\" Internal Hard Drive Bare Drive",
+      series: "3070",
+      type: productTypeGraphicsCard,
       url: "https://www.newegg.com/red-pro-wd6003ffbx-6tb/p/N82E16822234344",
     }
   ],

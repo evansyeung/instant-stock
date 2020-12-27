@@ -4,5 +4,7 @@ export type Product = {
   currentPrice?: string | null,
   id: string,
   name: string,
+  series: string,
+  type: "graphics-card",
   url: string,
 }

@@ -12,6 +12,11 @@ import {
 } from "./models/config.model";
 
 
+interface Notification {
+  sound: SoundConfigs,
+  discord: DiscordConfigs
+}
+
 dotenv.config({
   path: `${path.resolve(__dirname, "../local_secrets.env")}`
 });
@@ -60,18 +65,23 @@ const sound: SoundConfigs = {
 };
 
 const discord: DiscordConfigs = {
+  discordNvidia3070RoleId: envOrString(process.env.DISCORD_NVIDIA_3070_ROLE_ID),
+  discordNvidia3080RoleId: envOrString(process.env.DISCORD_NVIDIA_3080_ROLE_ID),
+  discordNvidia3090RoleId: envOrString(process.env.DISCORD_NVIDIA_3090_ROLE_ID),
   discordWebhookId: envOrString(process.env.DISCORD_WEBHOOK_ID),
   discordWebhookToken: envOrString(process.env.DISCORD_WEBHOOK_TOKEN),
   shouldSendDiscordNotification: envOrBoolean(process.env.DISCORD_NOTIFICATION),
 };
 
+const notification: Notification = {
+  sound,
+  discord
+};
+
 export const config = {
   browser,
   puppeteer,
-  notification: {
-    sound,
-    discord,
-  },
+  notification,
   sleep,
   store
 };

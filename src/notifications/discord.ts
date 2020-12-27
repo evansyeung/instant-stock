@@ -1,12 +1,29 @@
 "use strict";
 import { Store } from "./../models/store.model";
 import { Product } from "./../models/product.model";
+import { productTypeGraphicsCard } from "./../utils/constants";
 import { WebhookClient, MessageEmbed } from "discord.js";
 import { logger } from "../utils/logger";
 import { config } from "../config";
 
 
 let client: WebhookClient;
+
+function getDiscordRoleId(productInfo: Product) {
+  const { series } = productInfo;
+
+  let roleId;
+  switch (productInfo.type) {
+    case productTypeGraphicsCard:
+      roleId = config.notification.discord[`discordNvidia${series}RoleId`];
+  }
+
+  if (!roleId) {
+    return "@here";
+  }
+
+  return `<@&${roleId}>`;
+}
 
 function createEmbeddedMessage(storeInfo: Store, productInfo: Product): MessageEmbed {
   const embeddedMessage = new MessageEmbed()
@@ -17,6 +34,10 @@ function createEmbeddedMessage(storeInfo: Store, productInfo: Product): MessageE
       {
         name: "CURRENT PRICE",
         value: productInfo.currentPrice,
+      },
+      {
+        name: "SERIES",
+        value: productInfo.series,
       },
       {
         name: "PRODUCT LINK",
@@ -51,8 +72,9 @@ export function sendDiscordMessage(storeInfo: Store, productInfo: Product): void
     }
 
     const embeddedMessage = createEmbeddedMessage(storeInfo, productInfo);
+    const mention = getDiscordRoleId(productInfo);
     client.send(
-      `@here **${storeInfo.name}**: ${productInfo.name} is in stock ‼️`,
+      `${mention}\n**${storeInfo.name}**: ${productInfo.name} is in stock ‼️`,
       {
         embeds: [embeddedMessage]
       }

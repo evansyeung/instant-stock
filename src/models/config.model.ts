@@ -29,7 +29,10 @@ export interface SleepConfigs {
 }
 
 export interface DiscordConfigs {
-  shouldSendDiscordNotification: boolean,
+  discordNvidia3070RoleId: string,
+  discordNvidia3080RoleId: string,
+  discordNvidia3090RoleId: string,
   discordWebhookId: string,
   discordWebhookToken: string,
+  shouldSendDiscordNotification: boolean,
 }
