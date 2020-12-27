@@ -5,12 +5,13 @@ export interface Store {
   name: string,
   products: Product[],
   queryLabel: {
-    inStockLabel: Selector
+    inStockLabel: Selector,
+    currentPriceLabel: Selector
   }
 }
 
 export type Selector = {
   selector: string,
-  type: "innerHTML",
+  type: "innerHTML" | "textContent",
   targetText: string,
 }

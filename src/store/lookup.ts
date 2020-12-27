@@ -16,6 +16,22 @@ function isProductInStock(text: string, targetText: string): boolean {
   return result;
 }
 
+async function getCurrentPrice(page: Page, currentPriceLabel: Selector): Promise<string> {
+  const priceString = await extractPageContents(page, currentPriceLabel);
+
+  if (priceString) {
+    const match = priceString.match(/\$?(\d+.\d{2})/);
+
+    if (match) {
+      const currentPrice = `$${match[1]}`;
+      logger.debug(`✔ successfully matched price ${currentPrice}`);
+      return currentPrice;
+    }
+  }
+
+  return "Unable to retrieve product's price";
+}
+
 async function extractPageContents(page: Page, options: Selector): Promise<string | null> {
   return page.evaluate((options: Selector) => {
     const element = <HTMLElement>document.querySelector(options.selector);
@@ -27,13 +43,15 @@ async function extractPageContents(page: Page, options: Selector): Promise<strin
     switch (options.type) {
       case "innerHTML":
         return element.innerHTML;
+      case "textContent":
+        return element.textContent;
       default:
-        return "Error: selector.type is unknown";
+        return "Error: option.type is unknown";
     }
   }, options);
 }
 
-async function productLookUp(store: Store, product: Product, browser: Browser) {
+async function productLookUp(store: Store, product: Product, browser: Browser): Promise<void> {
   const { isIncognito } = config.puppeteer;
 
   const context: BrowserContext = isIncognito ? await browser.createIncognitoBrowserContext() : await browser.defaultBrowserContext();
@@ -53,8 +71,7 @@ async function productLookUp(store: Store, product: Product, browser: Browser) {
     throw Error(`✖ No response for ${store.name} - ${product.name} - ${product.url}`);
   }
 
-  const { inStockLabel } = store.queryLabel;
-  const { targetText } = inStockLabel;
+  const { inStockLabel, currentPriceLabel } = store.queryLabel;
   const contents = await extractPageContents(page, inStockLabel);
 
   if (!contents) {
@@ -62,9 +79,11 @@ async function productLookUp(store: Store, product: Product, browser: Browser) {
   }
 
   // If product in stock ➤ open browser with ATC link + notification settings
-  if (isProductInStock(contents, targetText)) {
+  if (isProductInStock(contents, inStockLabel.targetText)) {
     logger.info(`✔ ${store.name}: ${product.name} is ${chalk.bgGreen("in stock")} 🚨🚨🚨`);
     await openBrowser(product.url, product.atcUrl);
+
+    product.currentPrice = await getCurrentPrice(page, currentPriceLabel);
     await sendNotification(store, product);
   } else {
     logger.info(`✖ ${store.name}: ${product.name} is ${chalk.bgRedBright("not in stock")} 🤏`);
@@ -91,6 +110,6 @@ export async function productLookUpLoop(store: Store, product: Product, browser:
   }
 
   const sleepTime = getSleepTime(minSleep, maxSleep);
-  logger.debug(`ℹ Lookup done, next lookup in ${sleepTime} ms`);
+  logger.debug(`ℹ Lookup done for ${store.name}: ${product.name}, next lookup in ${sleepTime} ms`);
   setTimeout(productLookUpLoop, sleepTime, store, product, browser);
 }

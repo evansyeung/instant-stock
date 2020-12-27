@@ -15,6 +15,10 @@ function createEmbeddedMessage(storeInfo: Store, productInfo: Product): MessageE
     .setColor("#7fffd4")
     .addFields([
       {
+        name: "CURRENT PRICE",
+        value: productInfo.currentPrice,
+      },
+      {
         name: "PRODUCT LINK",
         value: productInfo.url,
         inline: true

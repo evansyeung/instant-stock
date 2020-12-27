@@ -24,6 +24,11 @@ export const Newegg: Store = {
       selector: ".product-buy",
       targetText: "add to cart",
       type: "innerHTML",
+    },
+    currentPriceLabel: {
+      selector: ".price-current",
+      targetText: "",
+      type: "textContent"
     }
   }
 };
