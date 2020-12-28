@@ -1,5 +1,8 @@
 "use strict";
-import puppeteer, { Browser } from "puppeteer";
+import { Browser } from "puppeteer";
+import puppeteer from 'puppeteer-extra'
+import StealthPlugin from 'puppeteer-extra-plugin-stealth'
+import AdblockerPlugin from 'puppeteer-extra-plugin-adblocker'
 import { Stores } from "./store";
 import { productLookUpLoop } from "./store/lookup";
 import { logger } from "./utils/logger";
@@ -29,6 +32,9 @@ const options = {
   }),
   args,
 };
+
+puppeteer.use(StealthPlugin())
+puppeteer.use(AdblockerPlugin({ blockTrackers: true }))
 
 logger.info("ℹ puppeteer options: ", options);
 

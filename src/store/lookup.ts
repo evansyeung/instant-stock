@@ -108,6 +108,6 @@ export async function productLookUpLoop(store: Store, product: Product, browser:
   }
 
   const sleepTime = getSleepTime(minSleep, maxSleep);
-  logger.info(`ℹ Lookup done for ${store.name}: ${product.name}, next lookup in ${sleepTime} ms`);
+  logger.debug(`ℹ Lookup done for ${store.name}: ${product.name}, next lookup in ${sleepTime} ms`);
   setTimeout(productLookUpLoop, sleepTime, store, product, browser);
 }
