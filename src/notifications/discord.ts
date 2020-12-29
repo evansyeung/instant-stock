@@ -15,7 +15,7 @@ function getDiscordRoleId(productInfo: Product) {
   let roleId;
   switch (productInfo.type) {
     case productTypeTest:
-      return ''
+      return "";
     case productTypeGraphicsCard:
       roleId = config.notification.discord[`discordNvidia${series}RoleId`];
   }

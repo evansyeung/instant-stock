@@ -1,4 +1,4 @@
-import { productTypeGraphicsCard, productTypeTest } from './../utils/constants';
+import { productTypeGraphicsCard, productTypeTest } from "./../utils/constants";
 import { Store } from "../models/store.model";
 
 

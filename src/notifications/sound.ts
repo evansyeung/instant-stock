@@ -5,12 +5,20 @@ import { logger } from "../utils/logger";
 import { config } from "../config";
 
 
-const player: PlaySound = playerLib();
+// TODO: Issue with running in Docker container, player.player is null
+const player: PlaySound = config.notification.sound.soundPlayer
+  ? playerLib({ players: [config.notification.sound.soundPlayer] })
+  : playerLib();
 
 export function playNotificationSound(): void {
   const { shouldPlayNotificationSound, soundFilePath } = config.notification.sound;
 
   if (!shouldPlayNotificationSound) {
+    return;
+  }
+
+  if (!soundFilePath || player.player === null) {
+    logger.warn("  ✖ no sound file or sound player not found");
     return;
   }
 
@@ -28,6 +36,7 @@ export function playNotificationSound(): void {
       player.play(soundFilePath, (err: Error) => {
         if (err) {
           logger.error("  ✖ couldn't play sound", err);
+          return;
         }
 
         logger.info("  ✔ played notification sound");

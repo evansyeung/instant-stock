@@ -1,0 +1,11 @@
+version: '3.0'
+services:
+  instant-stock:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+    container_name: instant-stock-backend
+    env_file:
+      - local_secrets.env

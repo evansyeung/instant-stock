@@ -61,6 +61,7 @@ const store: StoreConfigs = {
 
 const sound: SoundConfigs = {
   soundFilePath: envOrString(process.env.SOUND_FILE_PATH),
+  soundPlayer: envOrString(process.env.SOUND_PLAYER),
   shouldPlayNotificationSound: envOrBoolean(process.env.SOUND_NOTIFICATION),
 };
 

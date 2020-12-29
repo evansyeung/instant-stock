@@ -21,6 +21,7 @@ export interface StoreConfigs {
 export interface SoundConfigs {
   shouldPlayNotificationSound: boolean,
   soundFilePath: string,
+  soundPlayer: string
 }
 
 export interface SleepConfigs {
