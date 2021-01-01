@@ -4,9 +4,12 @@ local_secrets.env:
 init: local_secrets.env
 	git config core.hooksPath .githooks
 
+.PHONY: build
 build:
-	docker build --tag instant-stock-backend .
+	# docker build --tag instant-stock-backend .
+	docker-compose build instant-stock
 
+.PHONY: clean
 clean:
 	rm -rf build
 
@@ -16,5 +19,7 @@ make lint:
 make lint-fix:
 	npm run lint-fix
 
+.PHONY: run
 run:
-	docker run -it --rm -p 8080:8080 --name instant-stock-backend instant-stock-backend
+	docker-compose up
+	# docker run -it --rm -p 8080:8080 --name instant-stock-backend instant-stock-backend
