@@ -8,6 +8,13 @@ export interface PuppeteerConfigs {
   defaultUserAgent: string,
 }
 
+export interface AWSConfigs {
+  awsAccessKeyId: string,
+  awsSecretAccessKey: string,
+  awsRegion: string,
+  awsEndpoint: string,
+}
+
 export interface BrowserConfigs {
   shouldOpenBrowser: boolean,
   browserApp: string,

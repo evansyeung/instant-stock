@@ -3,6 +3,7 @@
 import dotenv from "dotenv";
 import path from "path";
 import {
+  AWSConfigs,
   BrowserConfigs,
   DiscordConfigs,
   PuppeteerConfigs,
@@ -49,6 +50,13 @@ const puppeteer: PuppeteerConfigs = {
 
 };
 
+const aws: AWSConfigs = {
+  awsAccessKeyId: envOrString(process.env.AWS_ACCESS_KEY_ID),
+  awsSecretAccessKey: envOrString(process.env.AWS_SECRET_ACCESS_KEY),
+  awsRegion: envOrString(process.env.AWS_REGION),
+  awsEndpoint: envOrString(process.env.AWS_ENDPOINT),
+};
+
 const browser: BrowserConfigs = {
   browserApp: envOrString(process.env.BROWSER_APP),
   shouldOpenBrowser: envOrBoolean(process.env.BROWSER_OPEN),
@@ -80,6 +88,7 @@ const notification: Notification = {
 };
 
 export const config = {
+  aws,
   browser,
   puppeteer,
   notification,

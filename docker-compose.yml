@@ -9,3 +9,9 @@ services:
     container_name: instant-stock-backend
     env_file:
       - local_secrets.env
+  dynamodb:
+    image: amazon/dynamodb-local
+    hostname: dynamodb-local
+    container_name: dynamodb-local
+    ports:
+      - "8000:8000"

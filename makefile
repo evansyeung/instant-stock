@@ -19,6 +19,20 @@ make lint:
 make lint-fix:
 	npm run lint-fix
 
+run-db:
+	docker-compose start dynamodb
+
+stop-db:
+	docker-compose stop dynamodb
+
+create-tables: run-db
+	npm run create-tables create
+	stop-db
+
+delete-tables: run-db
+	npm run delete-tables delete
+	stop-db
+
 .PHONY: run
 run:
 	docker-compose up
