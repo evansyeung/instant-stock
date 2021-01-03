@@ -6,34 +6,35 @@ init: local_secrets.env
 
 .PHONY: build
 build:
-	# docker build --tag instant-stock-backend .
 	docker-compose build instant-stock
 
 .PHONY: clean
 clean:
 	rm -rf build
 
+.PHONY: run
+run:
+	docker-compose up
+
+# ESLint
 make lint:
 	npm run lint
 
 make lint-fix:
 	npm run lint-fix
 
-run-db:
-	docker-compose start dynamodb
+# DynamoDB
+create-tables:
+	npm run create-tables
 
-stop-db:
-	docker-compose stop dynamodb
+delete-tables:
+	npm run delete-tables
 
-create-tables: run-db
-	npm run create-tables create
-	stop-db
+reset-tables:
+	npm run reset-tables
 
-delete-tables: run-db
-	npm run delete-tables delete
-	stop-db
+insert-items:
+	npm run insert-items
 
-.PHONY: run
-run:
-	docker-compose up
-	# docker run -it --rm -p 8080:8080 --name instant-stock-backend instant-stock-backend
+run-dynamodb:
+	docker-compose up dynamodb

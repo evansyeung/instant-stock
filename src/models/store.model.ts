@@ -2,6 +2,7 @@ import { Product } from "../models/product.model";
 
 
 export interface Store {
+  id: string,
   name: string,
   products: Product[],
   queryLabel: {

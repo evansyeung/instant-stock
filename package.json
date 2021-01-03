@@ -6,9 +6,11 @@
   "scripts": {
     "lint": "eslint . --ext .ts",
     "lint-fix": "eslint . --ext .ts --fix",
-    "create-tables": "node src/db/table.ts create",
-    "delete-tables": "node src/db/tables.ts delete",
-    "start": "tsc && node ./src/index.ts",
+    "create-tables": "ts-node src/db/tables.ts create",
+    "delete-tables": "ts-node src/db/tables.ts delete",
+    "reset-tables": "ts-node src/db/tables.ts reset",
+    "insert-items": "ts-node src/db/items.ts",
+    "start": "ts-node ./src/index.ts",
     "start:dev": "nodemon",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -49,6 +51,7 @@
     "puppeteer-extra-plugin-block-resources": "^2.2.7",
     "puppeteer-extra-plugin-stealth": "^2.6.5",
     "random-useragent": "^0.5.0",
+    "uuid": "^3.3.2",
     "winston": "^3.3.3"
   }
 }
