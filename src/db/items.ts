@@ -1,17 +1,23 @@
 import { dynamodbDocClient } from "./../utils/aws";
-import { logger } from "./../utils/logger";
 import { Store } from "./../models/store.model";
 import { Stores } from "../store";
+import { logger } from "./../utils/logger";
 
-interface BatchItems {
+
+type BatchItems = {
   PutRequest: {
     Item: Store
   }
 }
 
-function main() {
+function generateParams(stores: { [key: string]: Store }) {
   const items: BatchItems[] = [];
-  Object.values(Stores).forEach(store => {
+  const params = {
+    RequestItems: {}
+  };
+
+  Object.values(stores).forEach(store => {
+    logger.info(`${store.name} to be written to stores table`);
     items.push({
       PutRequest: {
         Item: store
@@ -19,19 +25,22 @@ function main() {
     });
   });
 
-  const params = {
-    RequestItems: {
-      stores: items
-    },
-  };
+  params.RequestItems["stores"] = items;
+  return params;
+}
 
-  dynamodbDocClient.batchWrite(params, function (err, data) {
-    if (err) {
-      logger.error("Unable to add item. Error JSON:", JSON.stringify(err, null, 2));
-    } else {
-      logger.info("Added item:", JSON.stringify(data, null, 2));
-    }
-  });
+async function batchWriteItems(params) {
+  try {
+    await dynamodbDocClient.batchWrite(params).promise();
+    logger.info("Items written to table");
+  } catch (err) {
+    logger.error("Error writing items into table!", err);
+  }
+}
+
+function main() {
+  const params = generateParams(Stores);
+  batchWriteItems(params);
 }
 
 main();
