@@ -85,6 +85,8 @@ async function productLookUp(store: Store, product: Product, browser: Browser): 
     } else {
       logger.info(`✖ ${store.name}: ${product.name} is ${chalk.bgRedBright("not in stock")} 🤏`);
     }
+  } else {
+    logger.error(`✖ Unable to extract page's content for ${product.name}`);
   }
 
   // Clear page cookie history and cache
@@ -97,7 +99,7 @@ async function productLookUp(store: Store, product: Product, browser: Browser): 
 
 export async function productLookUpLoop(store: Store, product: Product, browser: Browser): Promise<void> {
   const { minSleep, maxSleep } = config.sleep;
-  logger.info(`ℹ Looking up ${store.name} product: `, product);
+  logger.debug(`ℹ Looking up ${store.name} product: `, product);
 
   try {
     await productLookUp(store, product, browser);

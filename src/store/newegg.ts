@@ -3,6 +3,7 @@ import { Store } from "../models/store.model";
 
 
 export const Newegg: Store = {
+  checkStore: true,
   id: "1",
   name: "Newegg",
   products: [

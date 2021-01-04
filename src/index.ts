@@ -3,7 +3,7 @@ import { Browser } from "puppeteer";
 import puppeteer from "puppeteer-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import AdblockerPlugin from "puppeteer-extra-plugin-adblocker";
-import { Stores } from "./store";
+import { dynamodbDocClient } from "./utils/aws";
 import { productLookUpLoop } from "./store/lookup";
 import { logger } from "./utils/logger";
 import { config } from "./config";
@@ -42,8 +42,22 @@ async function main() {
   browser = await puppeteer.launch(options);
   config.puppeteer.defaultUserAgent = await browser.userAgent();
 
+  const params = {
+    TableName: "stores",
+    FilterExpression: "checkStore=:checkStore",
+    ExpressionAttributeNames: {
+      "#name": "name",
+    },
+    ExpressionAttributeValues: {
+      ":checkStore": true
+    },
+    ProjectionExpression: "#name, products, queryLabel"
+  };
+
+  const { Items: Stores } = await dynamodbDocClient.scan(params).promise();
+
   try {
-    Object.values(Stores).forEach(async store => {
+    Stores.forEach(async store => {
       await Promise.all(store.products.map(async product => {
         return await productLookUpLoop(store, product, browser);
       }));

@@ -2,6 +2,7 @@ import { Product } from "../models/product.model";
 
 
 export interface Store {
+  checkStore: boolean,
   id: string,
   name: string,
   products: Product[],

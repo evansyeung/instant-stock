@@ -3,6 +3,7 @@ import { Store } from "../models/store.model";
 
 
 export const Bestbuy: Store = {
+  checkStore: true,
   id: "2",
   name: "Bestbuy",
   products: [
