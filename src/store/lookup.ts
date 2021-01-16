@@ -1,10 +1,17 @@
 "use strict";
-import { Browser, BrowserContext, Page, Response } from "puppeteer";
+import {
+  Browser,
+  BrowserContext,
+  Page,
+  Request,
+  Response
+} from "puppeteer";
 import chalk from "chalk";
 import { sendNotification } from "../notifications/notification";
 import { Store, Selector } from "../models/store.model";
 import { Product } from "../models/product.model";
 import { getRandomUserAgent, openBrowser, getSleepTime } from "../utils/utils";
+import useProxy from "@doridian/puppeteer-page-proxy";
 import { logger } from "../utils/logger";
 import { config } from "../config";
 
@@ -14,6 +21,31 @@ function isProductInStock(text: string, targetText: string): boolean {
   const result = textLowerCase.includes(targetText);
   logger.debug(`Comparing ${chalk.yellow(`"${textLowerCase}" ⇄  "${targetText}"`)} ➤  ${chalk.yellow(result.toString())}`);
   return result;
+}
+
+function getProxy() {
+  // TODO: Implement proxy rotation
+  const proxy = "";
+  return proxy;
+}
+
+async function handleProxy(request: Request, proxy?: string) {
+  if (!proxy) {
+    return false;
+  }
+
+  try {
+    await useProxy(request, proxy);
+  } catch (error: unknown) {
+    logger.error("handleProxy", error);
+    try {
+      await request.abort();
+    }
+    // eslint-disable-next-line no-empty
+    catch { }
+  }
+
+  return true;
 }
 
 async function getCurrentPrice(page: Page, currentPriceLabel: Selector): Promise<string> {
@@ -62,6 +94,20 @@ async function productLookUp(store: Store, product: Product, browser: Browser): 
   const userAgent = await getRandomUserAgent();
   logger.debug(`ℹ setting page userAgent: ${userAgent}`);
   page.setUserAgent(userAgent);
+
+  const proxy = getProxy();
+  await page.setRequestInterception(true);
+  page.on("request", async (request) => {
+    if (await handleProxy(request, proxy)) {
+      return;
+    }
+
+    try {
+      await request.continue();
+    }
+    // eslint-disable-next-line no-empty
+    catch { }
+  });
 
   const response: Response | null = await page.goto(product.url, {
     waitUntil: "networkidle0"
