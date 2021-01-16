@@ -27,7 +27,7 @@ function envOrString(envVar?: string) {
 }
 
 function envOrBoolean(envVar?: string) {
-  return envVar == "true" || false;
+  return envVar === "true" || false;
 }
 
 function envOrNumber(envVar?: string, defaultVal?: number) {

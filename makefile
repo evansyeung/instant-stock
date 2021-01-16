@@ -17,10 +17,10 @@ run:
 	docker-compose up
 
 # ESLint
-make lint:
+lint:
 	npm run lint
 
-make lint-fix:
+lint-fix:
 	npm run lint-fix
 
 # DynamoDB
